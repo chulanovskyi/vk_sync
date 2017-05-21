@@ -1,26 +1,13 @@
 import os
-import getpass
+import json
 import vk
 
 
-APP_ID = os.environ.get('VK_APP_ID')
+ACCESS_TOKEN = os.environ.get('VK_A_T')
 
 
-def get_user_login():
-    return input('Enter login: ')
-
-
-def get_user_password():
-    return getpass.getpass('Enter password: ')
-
-
-def create_session(login='#', password='#'):
-    session = vk.AuthSession(
-        app_id=APP_ID,
-        user_login=os.environ.get('VK_APP_LOGIN'),
-        user_password=os.environ.get('VK_APP_PASS'),
-        scope=['account', 'friends', 'docs'],
-        )
+def create_session():
+    session = vk.Session(access_token=ACCESS_TOKEN)
     api_session = vk.API(session)
     return api_session
 
@@ -31,8 +18,18 @@ def get_online_friends(api):
     return friends_online
 
 
+def output_friends_to_console(friends_online):
+    print('Friends are currently online:')
+    for friend in friends_online:
+        print(friend['last_name'], friend['first_name'])
+
+
 def get_acc_info(api):
-    info = api.account.getCounters()
+    info = {
+    'getInfo': api.account.getInfo(),
+    'getProfileInfo': api.account.getProfileInfo(),
+    'gifts': api.account.getCounters(),
+    }
     return info
 
 
@@ -40,19 +37,29 @@ def get_docs(api):
     docs = api.docs.get()
     return docs
 
-def output_friends_to_console(friends_online):
-    print('Friends are currently online:')
-    for friend in friends_online:
-        print(friend['last_name'], friend['first_name'])
+
+def get_chats(api):
+    chats = api.messages.get()
+    return chats
+
+
+def get_photos(api):
+    photos = api.photos.getAll()
+    return photos
+
+
+def get_videos(api):
+    videos = api.video.get()
+    return videos
+
+
+def save_to_file(data, file_name, as_json=False):
+    with open(file_name, 'w') as data_file:
+        if as_json:
+            data_file.write(json.dumps(data))
+        else:
+            data_file.write(data)
 
 
 if __name__ == '__main__':
-    # login = get_user_login()
-    # password = get_user_password()
     api = create_session()
-#    friends_online = get_online_friends(api)
-    acc_info = get_acc_info(api)
-    print(acc_info)
-    docs = get_docs(api)
-    print(docs)
-#    output_friends_to_console(friends_online)
